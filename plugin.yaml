@@ -1,0 +1,64 @@
+schema-version: v2
+kind: plugin
+metadata:
+  name: spring-boot-actuator-plugin
+  display-name: Spring Boot Actuator Plugin
+  description: Habilita microsserviço a expor endpoint de monitoramento e health checking via modulo Spring Boot Actuator
+  version: 0.0.1
+  picture: plugin.png
+spec:
+  type: app
+  compatibility:
+    - python
+  docs:
+    pt-br: docs/pt-br/docs.md
+    en-us: docs/en-us/docs.md
+  single-use: False
+  repository: https://github.com/leodelmiro/stackspot-spring-boot-actuator-plugin.git
+  technologies: # Ref: https://docs.stackspot.com/create-use/create-content/yaml-files/plugin-yaml/#technologies-1
+    - Api
+    - Kotlin
+    - Maven
+    - Spring Boot
+  stk-projects-only: false
+  inputs:
+    - label: Which endpoint do you want to expose?
+      name: actuator_endpoints
+      type: multiselect
+      required: true
+      items:
+        - health
+        - metrics
+        - env
+      default: health
+      help: 'Inform which actuator endpoints you want (e.g.: health)'
+  computed-inputs:
+    actuator_endpoints_joined: "{{ actuator_endpoints | join(', ') }}"
+  hooks:
+    ##
+    # Edit pom.xml
+    # (Using hook type=edit)
+    ##
+    - type: edit
+      path: pom.xml
+      trigger: after-render    
+      changes:
+        - search:
+          string: "</dependencies>"
+          insert-before:
+            snippet: snippets/snippet-pom.xml.jinja
+          when:
+            not-exists-snippet: snippets/snippet-pom.xml.jinja
+    ##
+    # Edit application.yml
+    # (Using hook type=edit)
+    ##
+    - type: edit
+      path: src/main/resources/application.yml
+      trigger: after-render    
+      changes:
+        - insert:
+          line: -1
+          snippet: snippets/snippet-application.yml.jinja
+          when:
+            not-exists: "management:"
