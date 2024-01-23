@@ -35,30 +35,70 @@ spec:
   computed-inputs:
     actuator_endpoints_joined: "{{ actuator_endpoints | join(', ') }}"
   hooks:
+    # ##
+    # # Edit pom.xml
+    # # (Using hook type=edit)
+    # ##
+    # - type: edit
+    #   path: pom.xml
+    #   trigger: after-render    
+    #   changes:
+    #     - search:
+    #         string: "</dependencies>"
+    #         insert-before:
+    #           snippet: snippets/snippet-pom.xml.jinja
+    #         when:
+    #           not-exists-snippet: snippets/snippet-pom.xml.jinja
+
     ##
     # Edit pom.xml
-    # (Using hook type=edit)
+    # (Using hook type=edit-xml)
     ##
-    - type: edit
+    - type: edit-xml
       path: pom.xml
-      trigger: after-render    
+      trigger: after-render 
+      encoding: UTF-8
       changes:
-        - search:
-            string: "</dependencies>"
-            insert-before:
-              snippet: snippets/snippet-pom.xml.jinja
-            when:
-              not-exists-snippet: snippets/snippet-pom.xml.jinja
-    ##  
-    # Edit application.yml
-    # (Using hook type=edit)
+        - xpath: .//dependencies
+          append:
+            snippet: snippets/snippet-pom.xml.jinja
+          when:
+            not-exists: "./dependencies/dependency/artifactId[.='spring-boot-starter-actuator']/.."
     ##
-    - type: edit
-      path: src/main/resources/application.yml
-      trigger: after-render    
+    # Necessary to remove actuator from plugins dependencies
+    ##    
+    - type: edit-xml
+      trigger: after-render
+      path: pom.xml
       changes:
-        - insert:
-            line: -1
+        - xpath: ./build/plugins/plugin/dependencies/dependency/artifactId[.='spring-boot-starter-actuator']/..
+          remove: true    
+    # ##  
+    # # Edit application.yml
+    # # (Using hook type=edit)
+    # ##
+    # - type: edit
+    #   path: src/main/resources/application.yml
+    #   trigger: after-render    
+    #   changes:
+    #     - insert:
+    #         line: -1
+    #         snippet: snippets/snippet-application.yml.jinja
+    #         when:
+    #           not-exists: "management:"
+
+    ##
+    # Edit application.yml
+    # (Using hook type=edit-yaml)
+    ##
+    - type: edit-yaml
+      path: src/main/resources/application.yml
+      trigger: after-render
+      indent: 4
+      encoding: UTF-8
+      changes:
+        - yamlpath: "$"
+          update:
             snippet: snippets/snippet-application.yml.jinja
-            when:
-              not-exists: "management:"
+          when:
+            not-exists: "$.management.endpoints"
