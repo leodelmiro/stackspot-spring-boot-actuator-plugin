@@ -44,12 +44,12 @@ spec:
       trigger: after-render    
       changes:
         - search:
-          string: "</dependencies>"
-          insert-before:
-            snippet: snippets/snippet-pom.xml.jinja
-          when:
-            not-exists-snippet: snippets/snippet-pom.xml.jinja
-    ##
+            string: "</dependencies>"
+            insert-before:
+              snippet: snippets/snippet-pom.xml.jinja
+            when:
+              not-exists-snippet: snippets/snippet-pom.xml.jinja
+    ##  
     # Edit application.yml
     # (Using hook type=edit)
     ##
@@ -58,7 +58,7 @@ spec:
       trigger: after-render    
       changes:
         - insert:
-          line: -1
-          snippet: snippets/snippet-application.yml.jinja
-          when:
-            not-exists: "management:"
+            line: -1
+            snippet: snippets/snippet-application.yml.jinja
+            when:
+              not-exists: "management:"
